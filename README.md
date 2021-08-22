@@ -1,6 +1,8 @@
 # foboseplustwo
 A continuation of Phobos, named Fobose+2
 
+Just in case one of the Wurst+2 devs comes after me, the +2 at the end is a joke in reference to Wurst+2, the name Fobose is taken inspiration from the default AutoGG message Phobos had "haha <player> is noob fobus on tope"
+
 ---
 
 ## Why?
