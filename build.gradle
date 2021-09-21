@@ -1,0 +1,125 @@
+buildscript {
+    repositories {
+        maven { url = "https://files.minecraftforge.net/maven" }
+        maven { url = "https://repo.spongepowered.org/maven" }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.3'
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.spongepowered.mixin'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+version = "1.9.2"
+group = "me.fobose.fobose"
+archivesBaseName = "foboseplustwo"
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+minecraft {
+    mappings channel: 'stable', version: '39-1.12'
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            property 'fml.coreMods.load', 'me.fobose.client.mixin.PhobosMixinLoader'
+            property 'mixin.env.disableRefMap', 'true'
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+        }
+    }
+}
+
+configurations {
+    dependency
+
+    all {
+        resolutionStrategy {
+            force 'org.lwjgl.lwjgl:lwjgl-platform:2.9.4-nightly-20150209'
+        }
+    }
+}
+
+repositories {
+    maven {
+        name = 'spongepowered-repo'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
+    }
+    maven {
+        name = 'impactdevelopment-repo'
+        url = 'https://impactdevelopment.github.io/maven/'
+    }
+    maven {
+        name = 'swt-repo'
+        url = "https://maven-eclipse.github.io/maven"
+    }
+    maven {
+        name = "jitpack.io"
+        url = "https://jitpack.io"
+    }
+    mavenCentral()
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2855'
+
+    dependency("org.spongepowered:mixin:0.7.11-SNAPSHOT") {
+        exclude module: 'launchwrapper'
+        exclude module: 'guava'
+        exclude module: 'gson'
+        exclude module: 'commons-io'
+        exclude module: 'log4j-core'
+    }
+
+    annotationProcessor("org.spongepowered:mixin:0.8.2:processor") {
+        exclude module: 'gson'
+    }
+
+    dependency 'com.googlecode.json-simple:json-simple:1.1.1'
+    implementation "com.github.cabaletta:baritone:1.2.14"
+    dependency "cabaletta:baritone-api:1.2"
+
+    implementation configurations.dependency
+}
+
+shadowJar {
+    exclude 'dummyThing'
+    classifier = 'release'
+}
+
+mixin {
+    defaultObfuscationEnv "searge"
+    add sourceSets.main, 'mixins.foboseplustwo.refmap.json'
+}
+
+compileJava {
+    options.encoding = "UTF-8"
+}
+
+jar {
+    manifest {
+        attributes(
+                'MixinConfigs': 'mixins.foboseplustwo.json',
+                'tweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
+                'TweakOrder': 0,
+                'FMLCorePluginContainsFMLMod': 'true',
+                'FMLCorePlugin': 'me.fobose.client.mixin.FoboseMixinLoader',
+                'ForceLoadAsMod': 'true'
+        )
+    }
+
+    from {
+        configurations.dependency.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+}
+
+build.dependsOn(shadowJar)
